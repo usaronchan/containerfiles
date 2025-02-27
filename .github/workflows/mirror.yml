@@ -1,0 +1,94 @@
+name: Mirror
+
+on:
+  workflow_dispatch:
+    inputs:
+      gitlab:
+        description: "Push GitLab"
+        type: boolean
+        required: true
+        default: false
+      github:
+        description: "Push GitHub"
+        type: boolean
+        required: true
+        default: false
+      coding:
+        description: "Push Coding"
+        type: boolean
+        required: true
+        default: false
+      cnb:
+        description: "Push cnb"
+        type: boolean
+        required: true
+        default: false
+  schedule:
+    # 每月3号2:37分开始执行（北京时间+8）
+    - cron: "37 2 3 * *"
+
+jobs:
+  build:
+    if: >-
+      github.event.inputs ||
+      github.event.schedule
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Pull docker images
+        run: |
+          docker pull chanzz0/texlive
+          docker pull debian
+      - name: Login to GitLab Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: registry.gitlab.com
+          username: aaron-git
+          password: ${{ secrets.GITLAB_TOKEN }}
+      - name: GitLab
+        if: inputs.gitlab
+        run: |
+          gitlab_url="registry.gitlab.com"
+          docker tag chanzz0/texlive $gitlab_url/us-git/docker/texlive
+          docker push $gitlab_url/us-git/docker/texlive
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.WORKFLOW_TOKEN }}
+      - name: GitHub
+        if: inputs.github
+        env:
+          github_username: aaronchan037
+        run: |
+          github_url="ghcr.io"
+          docker tag chanzz0/texlive $github_url/${github_username}/texlive
+          docker push $github_url/${github_username}/texlive
+      - name: Login to Coding Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: g-zekw7514-docker.pkg.coding.net
+          username: ${{ secrets.CODING_USERNAME }}
+          password: ${{ secrets.CODING_TOKEN }}
+      - name: Coding
+        if: inputs.coding
+        run: |
+          coding_url="g-zekw7514-docker.pkg.coding.net"
+          # Debian
+          docker tag debian $coding_url/docker/backup/debian:latest
+          docker push $coding_url/docker/backup/debian:latest
+      - name: Login to cnb Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: docker.cnb.cool
+          username: cnb
+          password: ${{ secrets.CNB_TOKEN }}
+      - name: cnb
+        if: inputs.cnb
+        run: |
+          cnb_url="docker.cnb.cool"
+          # Debian
+          docker tag debian $cnb_url/cnb-docker/docker/debian:latest
+          docker push $cnb_url/cnb-docker/docker/debian:latest

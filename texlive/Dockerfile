@@ -1,0 +1,38 @@
+# latest是最新的稳定版本，stable是滚动的稳定版本(推荐)
+FROM debian:latest
+LABEL maintainer="Aaron Chan <cs.yelling123@passinbox.com>"
+
+ENV LANG=C.UTF-8 \
+  LC_ALL=C.UTF-8 \
+  DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update \
+  && apt-get install -y \
+  wget perl fontconfig make xz-utils bzip2 ca-certificates curl python3 \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY texlive.profile .
+
+ARG TL_VERSION=2024 ARCH=x86_64-linux
+# 官方源地址：http://ctan.net
+# 自适应镜像源：http://mirror.ctan.org
+# 阿里云镜像源：https://mirrors.aliyun.com/CTAN
+ARG TL_URL=http://mirror.ctan.org
+
+# 下载并安装 TeXLive
+RUN wget -q ${TL_URL}/systems/texlive/tlnet/install-tl-unx.tar.gz \
+  && tar -xzf install-tl-unx.tar.gz && rm install-tl-unx.tar.gz \
+  && ./install-tl-*/install-tl --profile=texlive.profile --repository=${TL_URL}/systems/texlive/tlnet \
+  && rm -rf install-tl-*
+
+# 添加到环境变量
+ENV PATH="/usr/local/texlive/${TL_VERSION}/bin/${ARCH}:$PATH"
+
+# 更新 TeXLive 包管理器和安装字体相关的 TeX 包
+RUN tlmgr update --self --all \
+  && tlmgr install tex-gyre droid cm-unicode roboto junicode lm qualitype arphic-ttf fandol \
+  && luaotfload-tool --update \
+  && cp "$(find /usr/local/texlive -name texlive-fontconfig.conf)" /etc/fonts/conf.d/09-texlive-fonts.conf \
+  && fc-cache -fsv \
+  && tex -v && latex -v && bibtex -v && xetex -v && pdftex -v && luatex -v

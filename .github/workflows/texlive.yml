@@ -1,0 +1,159 @@
+name: TeXLive
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "Choose an workflow"
+        required: true
+        default: "image"
+        type: choice
+        options:
+          - image
+          - iso
+      release:
+        description: "Push release?"
+        type: boolean
+        required: true
+        default: false
+  schedule:
+    # 每年3月14号17:30分执行（北京时间+8）
+    - cron: "30 17 14 3 *"
+    # 每周一的0:37分执行（北京时间+8）
+    - cron: "37 0 * * 1"
+
+jobs:
+  build_docker_images:
+    if: >-
+      github.event.inputs.task == 'image' ||
+      github.event.schedule == '37 0 * * 1'
+    name: Build TeXLive Docker Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Push to Docker hub
+        uses: docker/build-push-action@v6
+        with:
+          context: ./texlive
+          file: ./texlive/Dockerfile
+          platforms: amd64
+          push: true
+          tags: "chanzz0/texlive:latest"
+
+  save_docker_images:
+    if: inputs.release
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      # 赋予写入的权限，否则无法发布release
+      contents: write
+    steps:
+      - name: Save images and gzip files
+        run: |
+          docker pull chanzz0/texlive
+          docker save "chanzz0/texlive:latest" -o texlive.tar
+          gzip -f texlive.tar
+      - name: List generated files (debug step)
+        run: |
+          find $GITHUB_WORKSPACE -name "*.tar.gz"
+          # 以上海时区作为发布时间
+          release_name=$(TZ="Asia/Shanghai" date +'%Y-%m-%d Build Docker images')
+          save_date=$(TZ="Asia/Shanghai" date +'%Y%m%d')
+          echo "RELEASE_NAME=$release_name" >> $GITHUB_ENV
+          echo "TAG=$save_date" >> $GITHUB_ENV
+      - name: Release
+        uses: ncipollo/release-action@v1
+        with:
+          name: ${{ env.RELEASE_NAME }}
+          tag: TeXLive-${{ env.TAG }}
+          body: |
+            ### Docker images
+            TeXLive Docker Image
+          artifacts: "${{ github.workspace }}/*.tar.gz"
+
+  push_mirrors:
+    if: ${{ success() }}
+    needs: [build_docker_images]
+    name: Push to Mirror Repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull docker images
+        run: |
+          docker pull chanzz0/texlive
+      - name: Login to Coding Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: g-zekw7514-docker.pkg.coding.net
+          username: ${{ secrets.CODING_USERNAME }}
+          password: ${{ secrets.CODING_TOKEN }}
+      - name: Coding
+        run: |
+          coding_url="g-zekw7514-docker.pkg.coding.net"
+          # TeXLive
+          docker tag chanzz0/texlive $coding_url/docker/backup/texlive:latest
+          docker push $coding_url/docker/backup/texlive:latest
+      - name: Login to cnb Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: docker.cnb.cool
+          username: cnb
+          password: ${{ secrets.CNB_TOKEN }}
+      - name: cnb
+        run: |
+          cnb_url="docker.cnb.cool"
+          # TeXLive
+          docker tag chanzz0/texlive $cnb_url/cnb-docker/docker/texlive:latest
+          docker push $cnb_url/cnb-docker/docker/texlive:latest
+
+  download_and_release:
+    if: >-
+      github.event.inputs.task == 'iso' ||
+      github.event.schedule == '30 17 14 3 *'
+    name: TeXLive latest archive (release)
+    runs-on: ubuntu-latest
+    permissions:
+      # 赋予写入的权限，否则无法发布release
+      contents: write
+    steps:
+      - name: Download TeXLive latest ISO file
+        env:
+          # 自适应的TeXLive镜像地址
+          TL_URL: http://mirror.ctan.org
+          # TeXLive镜像文件名 (最好不要带有年份，因为这样每次都是最新的)
+          TL_FILE: texlive.iso
+        run: |
+          # 静默下载TeXLive镜像 (避免在终端输出大量日志)
+          wget -cq "${TL_URL}/systems/texlive/Images/${TL_FILE}"
+      - name: tar and gzip file list
+        run: |
+          tar -cvf - texlive.iso | split -b 1970m - texlive.tar.part
+          for part in texlive.tar.part*; do
+            gzip -f "$part"
+          done
+      - name: List generated files (debug step)
+        run: |
+          find $GITHUB_WORKSPACE -name "*.tar.part*.gz"
+          # 以上海时区作为发布时间
+          texlive_version=$(TZ="Asia/Shanghai" date +'%Y')
+          echo "TL_VERSION=$texlive_version" >> $GITHUB_ENV
+      - name: Release
+        uses: ncipollo/release-action@v1
+        with:
+          name: TeXLive-Archive-latest
+          tag: TeXLive-${{ env.TL_VERSION }}
+          body: |
+            ### Archive
+            - texlive.iso
+            #### How to use this archive?
+            To download all files: `texlive.tar.part*.gz`
+          artifacts: "${{ github.workspace }}/*.tar.part*.gz"

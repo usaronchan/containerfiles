@@ -1,0 +1,18 @@
+version: "3.8"
+services:
+  web:
+    # web服务从Dockerfile当前目录中构建的镜像
+    build: .
+    # 将容器和主机绑定到暴露的端口5000
+    port:
+      - "5000:5000"
+    volumes:
+      - .:/code
+      - logvolume01: /etc/bash
+    links:
+      - redis
+  redis:
+    # redis服务使用Docker Hub的公共Redis镜像
+    image: "redis:alpine"
+volumes:
+  logvolume01: {}
