@@ -16,6 +16,11 @@ on:
         type: boolean
         required: true
         default: false
+      artifact:
+        description: "Push artifact?"
+        type: boolean
+        required: true
+        default: false
   schedule:
     # 每年3月14号17:30分执行（北京时间+8）
     - cron: "30 17 14 3 *"
@@ -51,7 +56,7 @@ jobs:
           tags: "chanzz0/texlive:latest"
 
   save_docker_images:
-    if: inputs.release
+    if: inputs.release || inputs.artifact
     name: Release
     runs-on: ubuntu-latest
     permissions:
@@ -72,6 +77,7 @@ jobs:
           echo "RELEASE_NAME=$release_name" >> $GITHUB_ENV
           echo "TAG=$save_date" >> $GITHUB_ENV
       - name: Release
+        if: inputs.release
         uses: ncipollo/release-action@v1
         with:
           name: ${{ env.RELEASE_NAME }}
@@ -80,6 +86,13 @@ jobs:
             ### Docker images
             TeXLive Docker Image
           artifacts: "${{ github.workspace }}/*.tar.gz"
+      - name: Upload Artifact
+        if: inputs.artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TeXLive-latest-docker-image
+          path: ${{ github.workspace }}/*.tar.gz
+          retention-days: 1
 
   push_mirrors:
     if: ${{ success() }}
@@ -119,7 +132,7 @@ jobs:
     if: >-
       github.event.inputs.task == 'iso' ||
       github.event.schedule == '30 17 14 3 *'
-    name: TeXLive latest archive (release)
+    name: TeXLive latest ISO archive (release)
     runs-on: ubuntu-latest
     permissions:
       # 赋予写入的权限，否则无法发布release
