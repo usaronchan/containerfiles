@@ -35,4 +35,4 @@ RUN tlmgr update --self --all \
   && luaotfload-tool --update \
   && cp "$(find /usr/local/texlive -name texlive-fontconfig.conf)" /etc/fonts/conf.d/09-texlive-fonts.conf \
   && fc-cache -fsv \
-  && tex -v && latex -v && bibtex -v && xetex -v && pdftex -v && luatex -v
+  && tex -v && latex -v && bibtex -v && xetex -v && pdftex -v && luatex -v && latexmk -v
