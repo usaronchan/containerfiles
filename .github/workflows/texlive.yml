@@ -32,11 +32,10 @@ jobs:
     if: >-
       github.event.inputs.task == 'image' ||
       github.event.schedule == '37 0 * * 1'
-    name: Build TeXLive Docker Image
+    name: Build TeXLive Container Image
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -50,14 +49,13 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./texlive
-          file: ./texlive/Dockerfile
+          file: ./texlive/Containerfile
           platforms: amd64
           push: true
           tags: "chanzz0/texlive:latest"
 
   save_docker_images:
     if: inputs.release || inputs.artifact
-    name: Release
     runs-on: ubuntu-latest
     permissions:
       # 赋予写入的权限，否则无法发布release

@@ -92,3 +92,9 @@ jobs:
           # Debian
           docker tag debian $cnb_url/cnb-docker/docker/debian:latest
           docker push $cnb_url/cnb-docker/docker/debian:latest
+          # Ubuntu
+          docker tag ubuntu $cnb_url/cnb-docker/docker/ubuntu:latest
+          docker push $cnb_url/cnb-docker/docker/ubuntu:latest
+          # Arch Linux
+          docker tag archlinux $cnb_url/cnb-docker/docker/archlinux:latest
+          docker push $cnb_url/cnb-docker/docker/archlinux:latest
