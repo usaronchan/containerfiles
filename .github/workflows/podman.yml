@@ -12,3 +12,4 @@ jobs:
       contents: write
     steps:
       - name: Pull Docker Images
+        run: podman pull archlinux
