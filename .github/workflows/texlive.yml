@@ -23,7 +23,7 @@ on:
         default: false
   schedule:
     # 每年3月14号17:30分执行（北京时间+8）
-    - cron: "30 17 14 3 *"
+    # - cron: "30 17 14 3 *"
     # 每周一的0:37分执行（北京时间+8）
     - cron: "37 0 * * 1"
 
@@ -130,8 +130,7 @@ jobs:
 
   download_and_release:
     if: >-
-      github.event.inputs.task == 'iso' ||
-      github.event.schedule == '30 17 14 3 *'
+      github.event.inputs.task == 'iso'
     name: TeXLive latest ISO archive (release)
     runs-on: ubuntu-latest
     permissions:

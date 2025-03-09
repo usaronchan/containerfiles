@@ -1,0 +1,14 @@
+name: podman
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build_and_save:
+    name: Build image and save
+    runs-on: ubuntu-latest
+    permissions:
+      # 赋予写入的权限，否则无法发布release
+      contents: write
+    steps:
+      - name: Pull Docker Images
