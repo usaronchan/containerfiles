@@ -34,7 +34,7 @@ jobs:
     if: >-
       github.event.inputs.task == 'image' ||
       github.event.schedule == '37 0 * * 1' ||
-      push.event.branch == 'main'
+      github.event_name == 'push'
     name: Build TeXLive Container Image
     runs-on: ubuntu-latest
     steps:
