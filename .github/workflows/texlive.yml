@@ -26,12 +26,15 @@ on:
     # - cron: "30 17 14 3 *"
     # 每周一的0:37分执行（北京时间+8）
     - cron: "37 0 * * 1"
+  push:
+    branches: [main]
 
 jobs:
   build_docker_images:
     if: >-
       github.event.inputs.task == 'image' ||
-      github.event.schedule == '37 0 * * 1'
+      github.event.schedule == '37 0 * * 1' ||
+      push.event.branch == 'main'
     name: Build TeXLive Container Image
     runs-on: ubuntu-latest
     steps:
@@ -101,18 +104,18 @@ jobs:
       - name: Pull docker images
         run: |
           docker pull chanzz0/texlive
-      - name: Login to Coding Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: g-zekw7514-docker.pkg.coding.net
-          username: ${{ secrets.CODING_USERNAME }}
-          password: ${{ secrets.CODING_TOKEN }}
-      - name: Coding
-        run: |
-          coding_url="g-zekw7514-docker.pkg.coding.net"
-          # TeXLive
-          docker tag chanzz0/texlive $coding_url/docker/backup/texlive:latest
-          docker push $coding_url/docker/backup/texlive:latest
+      # - name: Login to Coding Container Registry
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: g-zekw7514-docker.pkg.coding.net
+      #     username: ${{ secrets.CODING_USERNAME }}
+      #     password: ${{ secrets.CODING_TOKEN }}
+      # - name: Coding
+      #   run: |
+      #     coding_url="g-zekw7514-docker.pkg.coding.net"
+      #     # TeXLive
+      #     docker tag chanzz0/texlive $coding_url/docker/backup/texlive:latest
+      #     docker push $coding_url/docker/backup/texlive:latest
       - name: Login to cnb Container Registry
         uses: docker/login-action@v3
         with:
