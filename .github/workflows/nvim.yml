@@ -2,6 +2,9 @@ name: Neovim
 
 on:
   workflow_dispatch:
+  schedule:
+    # 每月1号的0:32分执行 (北京时间+8)
+    - cron: "32 0 1 * *"
   push:
     branches: [main]
     paths:

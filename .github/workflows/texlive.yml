@@ -22,8 +22,8 @@ on:
         required: true
         default: false
   schedule:
-    # 每周一的0:37分执行（北京时间+8）
-    - cron: "37 0 * * 1"
+    # 每月1号的0:37分执行 (北京时间+8)
+    - cron: "37 0 1 * *"
   push:
     branches: [main]
     paths:

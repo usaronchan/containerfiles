@@ -3,18 +3,13 @@ name: Mirror
 on:
   workflow_dispatch:
     inputs:
-      gitlab:
-        description: "Push GitLab"
-        type: boolean
-        required: true
-        default: false
+      # gitlab:
+      #   description: "Push GitLab"
+      #   type: boolean
+      #   required: true
+      #   default: false
       github:
         description: "Push GitHub"
-        type: boolean
-        required: true
-        default: true
-      coding:
-        description: "Push Coding"
         type: boolean
         required: true
         default: false
@@ -22,10 +17,10 @@ on:
         description: "Push cnb"
         type: boolean
         required: true
-        default: true
+        default: false
   schedule:
-    # 每周一2:37分开始执行（北京时间+8）
-    - cron: "37 2 * * 1"
+    # 每月3号2:37分开始执行（北京时间+8）
+    - cron: "37 2 3 * *"
 
 jobs:
   build:
@@ -43,18 +38,18 @@ jobs:
           docker pull debian
           docker pull ubuntu
           docker pull archlinux
-      - name: Login to GitLab Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: registry.gitlab.com
-          username: aaron-git
-          password: ${{ secrets.GITLAB_TOKEN }}
-      - name: GitLab
-        if: inputs.gitlab
-        run: |
-          gitlab_url="registry.gitlab.com"
-          docker tag chanzz0/texlive $gitlab_url/us-git/docker/texlive
-          docker push $gitlab_url/us-git/docker/texlive
+      # - name: Login to GitLab Container Registry
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: registry.gitlab.com
+      #     username: aaron-git
+      #     password: ${{ secrets.GITLAB_TOKEN }}
+      # - name: GitLab
+      #   if: inputs.gitlab || github.event.schedule
+      #   run: |
+      #     gitlab_url="registry.gitlab.com"
+      #     docker tag chanzz0/texlive $gitlab_url/us-git/docker/texlive
+      #     docker push $gitlab_url/us-git/docker/texlive
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -62,9 +57,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.WORKFLOW_TOKEN }}
       - name: GitHub
-        if: inputs.github
+        if: inputs.github || github.event.schedule
         env:
-          github_username: aaronchan037
+          github_username: ${{ github.actor }}
         run: |
           github_url="ghcr.io"
           # TeXLive
@@ -73,19 +68,6 @@ jobs:
           # Neovim
           docker tag chanzz0/nvim $github_url/${github_username}/nvim
           docker push $github_url/${github_username}/nvim
-      - name: Login to Coding Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: g-zekw7514-docker.pkg.coding.net
-          username: ${{ secrets.CODING_USERNAME }}
-          password: ${{ secrets.CODING_TOKEN }}
-      - name: Coding
-        if: inputs.coding
-        run: |
-          coding_url="g-zekw7514-docker.pkg.coding.net"
-          # Debian
-          docker tag debian $coding_url/docker/backup/debian:latest
-          docker push $coding_url/docker/backup/debian:latest
       - name: Login to cnb Container Registry
         uses: docker/login-action@v3
         with:
@@ -93,7 +75,7 @@ jobs:
           username: cnb
           password: ${{ secrets.CNB_TOKEN }}
       - name: cnb
-        if: inputs.cnb
+        if: inputs.cnb || github.event.schedule
         run: |
           cnb_url="docker.cnb.cool"
           # TeXLive
@@ -108,3 +90,17 @@ jobs:
           # Arch Linux
           docker tag archlinux $cnb_url/cnb-docker/docker/archlinux:latest
           docker push $cnb_url/cnb-docker/docker/archlinux:latest
+
+      # - name: Login to Coding Container Registry
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: g-zekw7514-docker.pkg.coding.net
+      #     username: ${{ secrets.CODING_USERNAME }}
+      #     password: ${{ secrets.CODING_TOKEN }}
+      # - name: Coding
+      #   if: inputs.coding || github.event.schedule
+      #   run: |
+      #     coding_url="g-zekw7514-docker.pkg.coding.net"
+      #     # Debian
+      #     docker tag debian $coding_url/docker/backup/debian:latest
+      #     docker push $coding_url/docker/backup/debian:latest
