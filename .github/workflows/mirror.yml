@@ -55,7 +55,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.WORKFLOW_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: GitHub
         if: inputs.github || github.event.schedule
         env:
