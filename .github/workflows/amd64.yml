@@ -1,0 +1,65 @@
+name: amd64
+
+on:
+  workflow_dispatch:
+    inputs:
+      save_path:
+        description: "less than 2GB use release, and other use artifact"
+        required: true
+        default: "release"
+        type: choice
+        options:
+          - release
+          - artifact
+      docker_images:
+        description: "Please type Docker images name"
+        required: true
+        default: "alpine:latest,alpine/curl"
+
+jobs:
+  build_and_save:
+    name: Build image and save
+    runs-on: ubuntu-latest
+    permissions:
+      # 赋予写入的权限，否则无法发布release
+      contents: write
+    steps:
+      - name: Pull Docker Images
+        run: |
+          images="${{ github.event.inputs.docker_images }}"
+          IFS=',' read -r -a image_array <<< "$images"
+          for image in "${image_array[@]}"; do
+            docker pull "${image}" --platform "linux/amd64"
+            image_name="${image//\//_}"
+            image_name="${image_name//:/_}"
+            docker save "${image}" -o "${image_name}.tar"
+            gzip -f "${image_name}.tar"
+          done
+      - name: List generated files (debug step)
+        run: |
+          find $GITHUB_WORKSPACE -name "*.tar.gz"
+          # 上海时区
+          release_name=$(TZ="Asia/Shanghai" date +'%Y-%m-%d %H:%M Build images')
+          save_date=$(TZ="Asia/Shanghai" date +'%Y%m%d')
+          echo "RELEASE_NAME=$release_name" >> $GITHUB_ENV
+          echo "TAG=$save_date" >> $GITHUB_ENV
+      - name: Release
+        if: inputs.save_path == 'release'
+        uses: ncipollo/release-action@v1
+        with:
+          name: ${{ env.RELEASE_NAME }}
+          tag: ${{ env.TAG }}
+          body: |
+            ### Images
+          artifacts: "${{ github.workspace }}/*.tar.gz"
+          allowUpdates: true
+          omitNameDuringUpdate: true
+          omitBodyDuringUpdate: true
+      - name: Upload Artifact
+        if: inputs.save_path == 'artifact'
+        uses: actions/upload-artifact@v4
+        with:
+          name: my-artifact
+          path: ${{ github.workspace }}/*.tar.gz
+          # 将保留天数设置为3天，最多可设置90天
+          retention-days: 3

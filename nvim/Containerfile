@@ -1,0 +1,30 @@
+FROM archlinux:latest
+
+RUN pacman -Syu --noconfirm \
+  && pacman -S --noconfirm \
+    base-devel git nodejs npm python-pip ripgrep fd fontconfig\
+    neovim ttf-nerd-fonts-symbols-mono \
+  && pacman -Scc --noconfirm \
+  && fc-cache -fv
+
+# 创建一个普通用户
+RUN useradd -m -G wheel -s /bin/bash dev \
+  && echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+
+# 切换到普通用户
+USER dev
+WORKDIR /home/dev
+
+# 安装 LazyVim
+RUN echo "export TERM=xterm-256color" >> ~/.bashrc \
+  && git clone https://github.com/LazyVim/starter ~/.config/nvim \
+  && rm -rf ~/.config/nvim/.git ~/.config/nvim/LICENSE
+
+# 设置环境变量
+ENV EDITOR=nvim
+
+# 启动 Neovim 进行初始安装
+RUN nvim --headless "+Lazy! sync" +qa
+
+# 设置默认命令为启动 Neovim
+CMD ["nvim"]
