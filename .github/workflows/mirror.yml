@@ -9,17 +9,17 @@ on:
       #   required: true
       #   default: false
       github:
-        description: "Push GitHub"
+        description: "Push GitHub?"
         type: boolean
         required: true
         default: false
       quay:
-        description: "Push quay.io"
+        description: "Push quay.io?"
         type: boolean
         required: true
         default: false
       cnb:
-        description: "Push cnb"
+        description: "Push cnb?"
         type: boolean
         required: true
         default: false
