@@ -48,7 +48,8 @@ jobs:
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - run: |
+      - name: Build image and Push
+        run: |
           docker build --file ./texlive/Containerfile --tag chanzz0/texlive:latest ./texlive
           docker push chanzz0/texlive:latest
       # - name: Set up QEMU

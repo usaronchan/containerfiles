@@ -13,22 +13,22 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /tex
 COPY texlive.profile .
 
-ARG TL_VERSION=2025 ARCH=x86_64-linux
-# 官方源地址：http://ctan.net
+ARG TL_VERSION=2025 ARCH_OS=x86_64-linux
+# Office source repo url: http://ctan.net
 # 自适应镜像源：http://mirror.ctan.org
-# 阿里云镜像源：https://mirrors.aliyun.com/CTAN
+# Aliyun mirror url: https://mirrors.aliyun.com/CTAN
 ARG TL_URL=http://mirror.ctan.org
 
-# 下载并安装 TeXLive
+# Download and Install TeXLive
 RUN wget -q ${TL_URL}/systems/texlive/tlnet/install-tl-unx.tar.gz \
   && tar -xzf install-tl-unx.tar.gz && rm install-tl-unx.tar.gz \
   && ./install-tl-*/install-tl --profile=texlive.profile --repository=${TL_URL}/systems/texlive/tlnet > install.log \
   && rm -rf install-tl-* install.log
 
-# 添加到环境变量
-ENV PATH="/usr/local/texlive/${TL_VERSION}/bin/${ARCH}:$PATH"
+# Add path to environment
+ENV PATH="/usr/local/texlive/${TL_VERSION}/bin/${ARCH_OS}:$PATH"
 
-# 更新 TeXLive 包管理器和安装字体相关的 TeX 包
+# Updated TeXLive package manage and Install fonts package
 RUN tlmgr update --self --all \
   && tlmgr install tex-gyre droid cm-unicode roboto junicode lm qualitype arphic-ttf fandol \
   && luaotfload-tool --update \
