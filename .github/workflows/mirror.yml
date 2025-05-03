@@ -68,11 +68,11 @@ jobs:
         run: |
           github_url="ghcr.io"
           # TeXLive
-          docker tag chanzz0/texlive $github_url/${github_username}/texlive
-          docker push $github_url/${github_username}/texlive
+          docker tag chanzz0/texlive $github_url/${github_username}/texlive:latest
+          docker push $github_url/${github_username}/texlive:latest
           # Neovim
-          docker tag chanzz0/nvim $github_url/${github_username}/nvim
-          docker push $github_url/${github_username}/nvim
+          docker tag chanzz0/nvim $github_url/${github_username}/nvim:latest
+          docker push $github_url/${github_username}/nvim:latest
       - name: Login to Red Hat Container Registry
         uses: docker/login-action@v3
         with:
