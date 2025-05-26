@@ -12,7 +12,7 @@ on:
         description: "Push GitHub?"
         type: boolean
         required: true
-        default: false
+        default: true
       quay:
         description: "Push quay.io?"
         type: boolean
