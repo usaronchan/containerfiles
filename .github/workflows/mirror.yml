@@ -84,8 +84,8 @@ jobs:
         run: |
           quay_url="quay.io"
           # TeXLive
-          docker tag chanzz0/texlive $quay_url/chanzz/texlive
-          docker push $quay_url/chanzz/texlive
+          docker tag chanzz0/texlive $quay_url/chanzz/texlive:latest
+          docker push $quay_url/chanzz/texlive:latest
       - name: Login to cnb Container Registry
         uses: docker/login-action@v3
         with:
