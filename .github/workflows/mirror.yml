@@ -12,17 +12,12 @@ on:
         description: "Push GitHub?"
         type: boolean
         required: true
-        default: true
-      quay:
-        description: "Push quay.io?"
-        type: boolean
-        required: true
         default: false
-      cnb:
-        description: "Push cnb?"
-        type: boolean
-        required: true
-        default: false
+      # quay:
+      #   description: "Push quay.io?"
+      #   type: boolean
+      #   required: true
+      #   default: false
   schedule:
     # 每月3号2:37分开始执行（北京时间+8）
     - cron: "37 2 3 * *"
@@ -73,41 +68,41 @@ jobs:
           # Neovim
           docker tag chanzz0/nvim $github_url/${github_username}/nvim:latest
           docker push $github_url/${github_username}/nvim:latest
-      - name: Login to Red Hat Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: quay.io
-          username: chanzz
-          password: ${{ secrets.QUAY_TOKEN }}
-      - name: Quay.io
-        if: inputs.quay || github.event.schedule
-        run: |
-          quay_url="quay.io"
-          # TeXLive
-          docker tag chanzz0/texlive $quay_url/chanzz/texlive:latest
-          docker push $quay_url/chanzz/texlive:latest
-      - name: Login to cnb Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: docker.cnb.cool
-          username: cnb
-          password: ${{ secrets.CNB_TOKEN }}
-      - name: cnb
-        if: inputs.cnb || github.event.schedule
-        run: |
-          cnb_url="docker.cnb.cool"
-          # TeXLive
-          docker tag chanzz0/texlive $cnb_url/cnb-docker/docker/texlive:latest
-          docker push $cnb_url/cnb-docker/docker/texlive:latest
-          # Debian
-          docker tag debian $cnb_url/cnb-docker/docker/debian:latest
-          docker push $cnb_url/cnb-docker/docker/debian:latest
-          # Ubuntu
-          docker tag ubuntu $cnb_url/cnb-docker/docker/ubuntu:latest
-          docker push $cnb_url/cnb-docker/docker/ubuntu:latest
-          # Arch Linux
-          docker tag archlinux $cnb_url/cnb-docker/docker/archlinux:latest
-          docker push $cnb_url/cnb-docker/docker/archlinux:latest
+      # - name: Login to Red Hat Container Registry
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: quay.io
+      #     username: chanzz
+      #     password: ${{ secrets.QUAY_TOKEN }}
+      # - name: Quay.io
+      #   if: inputs.quay || github.event.schedule
+      #   run: |
+      #     quay_url="quay.io"
+      #     # TeXLive
+      #     docker tag chanzz0/texlive $quay_url/chanzz/texlive:latest
+      #     docker push $quay_url/chanzz/texlive:latest
+      # - name: Login to cnb Container Registry
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: docker.cnb.cool
+      #     username: cnb
+      #     password: ${{ secrets.CNB_TOKEN }}
+      # - name: cnb
+      #   if: inputs.cnb || github.event.schedule
+      #   run: |
+      #     cnb_url="docker.cnb.cool"
+      #     # TeXLive
+      #     docker tag chanzz0/texlive $cnb_url/cnb-docker/docker/texlive:latest
+      #     docker push $cnb_url/cnb-docker/docker/texlive:latest
+      #     # Debian
+      #     docker tag debian $cnb_url/cnb-docker/docker/debian:latest
+      #     docker push $cnb_url/cnb-docker/docker/debian:latest
+      #     # Ubuntu
+      #     docker tag ubuntu $cnb_url/cnb-docker/docker/ubuntu:latest
+      #     docker push $cnb_url/cnb-docker/docker/ubuntu:latest
+      #     # Arch Linux
+      #     docker tag archlinux $cnb_url/cnb-docker/docker/archlinux:latest
+      #     docker push $cnb_url/cnb-docker/docker/archlinux:latest
 
       # - name: Login to Coding Container Registry
       #   uses: docker/login-action@v3
