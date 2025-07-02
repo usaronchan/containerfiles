@@ -1,0 +1,36 @@
+name: Podman
+
+on:
+  workflow_dispatch:
+  # push:
+  #   branches:
+  #     - main
+
+jobs:
+  build:
+    name: Pull image and save
+    runs-on: ubuntu-latest
+    permissions:
+      # 赋予写入的权限，否则无法发布release
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      # - name: Pull Images
+      #   run: |
+      #     podman pull debian
+      #     podman pull ubuntu
+      #     podman pull archlinux
+      - name: Podman Login
+        uses: redhat-actions/podman-login@v1
+        with:
+          registry: docker.io
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # - name: Push Images
+      #   run: |
+      #     podman push debian
+      #     podman push ubuntu
+      #     podman push archlinux
+      - run: |
+          podman build --file ./texlive/Containerfile --tag chanzz0/texlive:latest ./texlive
+          podman push chanzz0/texlive:latest
