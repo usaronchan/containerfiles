@@ -6,7 +6,8 @@ on:
     # 每月1号的0:32分执行 (北京时间+8)
     - cron: "32 0 1 * *"
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
       - 'nvim/Containerfile'
 
@@ -20,15 +21,19 @@ jobs:
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Push to Docker hub
-        uses: docker/build-push-action@v6
-        with:
-          context: ./nvim
-          file: ./nvim/Containerfile
-          platforms: amd64
-          push: true
-          tags: "chanzz0/nvim:latest"
+      - name: Build image and Push
+        run: |
+          docker build --file ./nvim/Containerfile --tag chanzz0/nvim:latest ./nvim
+          docker push chanzz0/nvim:latest
+      # - name: Set up QEMU
+      #   uses: docker/setup-qemu-action@v3
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v3
+      # - name: Push to Docker hub
+      #   uses: docker/build-push-action@v6
+      #   with:
+      #     context: ./nvim
+      #     file: ./nvim/Containerfile
+      #     platforms: amd64
+      #     push: true
+      #     tags: "chanzz0/nvim:latest"
