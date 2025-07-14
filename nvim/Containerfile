@@ -7,11 +7,11 @@ RUN pacman -Syu --noconfirm \
   && pacman -Scc --noconfirm \
   && fc-cache -fv
 
-# 创建一个普通用户
+# create a user: dev
 RUN useradd -m -G wheel -s /bin/bash dev \
   && echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
 
-# 切换到普通用户
+# switch "dev" user
 USER dev
 WORKDIR /home/dev
 
